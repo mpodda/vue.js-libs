@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+  layout:decorator="layout">
+  <head>
+    <title>Persons : Paging List</title>
+    
+    <style type="text/css">
+		.sortable {
+			cursor: default;
+			background: url([[@{/images/sort_both.png}]]) no-repeat center right;
+		}
+      
+		.sortasc {
+			background: url([[@{/images/sort_asc.png}]]) no-repeat center right;
+		}
+
+		.sortdesc {
+			background: url([[@{/images/sort_desc.png}]]) no-repeat center right;
+		}
+		
+		.selectedRow {
+			background-color: #fcfcfc;
+		}	
+    </style>
+  </head>
+  <body>
+    <h1 layout:fragment="header">Persons : Paging List</h1>
+    <div layout:fragment="content" class="container">
+    
+    	<div id="app-content">
+			<grid ref="grid" :defaulttemplate="defaultTemplate" :pagingenabled="enablePaging"  :pg="pg" :sorting="sorting" :fieldsset="fieldsset" :dataset="dataset" :renderers="renderers" :gridcomponents="gridcomponents" v-if="dataset!=null"></grid>
+    	</div>
+
+	</div>
+    <span layout:fragment="after-content">
+		<script type="text/x-template" id="grid-row-template">
+        	<tr>
+            	<td v-for="(col, index) in row" v-bind:is="getTemplate(index)" :value="col" :data="rawdata"></td>
+        	</tr>
+		</script>
+		    
+		<script type="text/x-template" id="grid-template">
+			<span>
+				<div class="row">
+					<div class="sm-5">
+						<p style="height:10px; padding:5px;" v-if="currentSortField==null"></p>
+						<p style="height:10px; padding:5px;" v-if="currentSortField!=null"><i class="fas fa-sort" />:{{currentSortField.title}}  <i v-if="currentSortField.sortType=='asc'" class="fas fa-sort-amount-up" /> <i v-if="currentSortField.sortType=='desc'" class="fas fa-sort-amount-down" /> </p>
+					</div>
+					<div class="sm-5">
+						<i class="fas fa-filter" />: <input type="text" v-model="filter" />
+					</div>
+				</div>
+
+		   		<table class="table table-hover">
+		   			<thead><tr><th v-for="(field, index) in fieldsset" @click="sort(field)" v-bind:class="getSortClass(field)">{{field.title}}</th></tr></thead>
+		            <tbody v-for="(row, index) in rows">
+		                <grid-row :rowdata="row" :rawdata="row"></grid-row>
+		            </tbody>
+		   		</table>
+				
+				<span id="paginator"></span>		
+			</span>
+		</script>
+		
+       <script type="text/x-template" id="default-template">
+            <td>{{value}}</td>
+        </script>
+        
+        <script type="text/x-template" id="men-template">
+            <td v-bind:title="value" style="font-size:24px;"><i class="fas fa-male"></i></td>
+        </script>
+        
+        <script type="text/x-template" id="women-template">
+            <td v-bind:title="value" style="font-size:24px;"><i class="fas fa-female"></i></td>
+        </script>
+        
+        <script type="text/x-template" id="active-template">
+            <td v-bind:title="value" style="font-size:24px; color:#0202f1"><i class="fas fa-check"></i></td>
+        </script>
+        
+        <script type="text/x-template" id="inactive-template">
+            <td v-bind:title="value" style="font-size:24px; color:#f10202"><i class="fas fa-times"></i></td>
+        </script>
+        
+        <script type="text/x-template" id="nationality-template">
+            <td v-bind:title="value.description">{{value.code}}</td>
+        </script>
+        
+		<script type="text/x-template" id="paginator-template">
+            <table style="padding-top:10px; border-spacing: 10px;">
+                <tr>
+                    <td><button class="btn btn-block btn-success" @click="gotoFirstPage"><i class="fas fa-fast-backward"/></button></td>
+                    <td><button class="btn btn-block btn-success" @click="gotoPreviousPage"><i class="fas fa-backward"/></button></td>
+                    <td class="lead">Page {{currentpage}} of {{pages}}</td>
+                    <td><button class="btn btn-block btn-success" @click="gotoNextPage"><i class="fas fa-forward"/></button></td>
+                    <td><button class="btn btn-block btn-success" @click="gotoLastPage"><i class="fas fa-fast-forward"/></button></td>
+                    <td class="lead">Total Records: <span v-model="totalrecordscount">{{totalrecordscount}}</span></td>
+                </tr>
+            </table>
+        </script>
+    </span>
+        
+    <span layout:fragment="page-script">
+    	<script type="text/javascript" th:src="@{/js/app/pagingList.js}" ></script>
+    </span>
+    
+</body>
+</html>

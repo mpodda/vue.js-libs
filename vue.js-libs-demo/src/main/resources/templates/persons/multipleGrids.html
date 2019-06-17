@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+  layout:decorator="layout">
+  <head>
+    <title>Persons : Multiple Grids</title>
+    <style type="text/css">
+		.sortable {
+			cursor: default;
+			background: url([[@{/images/sort_both.png}]]) no-repeat center right;
+		}
+      
+		.sortasc {
+			background: url([[@{/images/sort_asc.png}]]) no-repeat center right;
+		}
+
+		.sortdesc {
+			background: url([[@{/images/sort_desc.png}]]) no-repeat center right;
+		}
+		
+		.selectedRow {
+			background-color: #fcfcfc;
+		}	
+    </style>
+  </head>
+  <body>
+    <h1 layout:fragment="header">Persons : Multiple Grids</h1>
+    <div layout:fragment="content" class="container">
+    	<div id="app-content">
+    		<button type="button" class="btn btn-success  pull-left" @click="createPerson">Create</button>
+    		
+			<grid ref="grid"  :defaulttemplate="defaultTemplate" :pagingenabled="enablePaging" :pg="pg" :sorting="sorting" :fieldsset="fieldsset" :dataset="dataset" :gridcomponents="gridcomponents" v-if="dataset!=null"></grid>
+			
+			<div>
+				<grid ref="grid" :defaulttemplate="defaultTemplate" :pagingenabled="true" :pgid="'paginator2'" :pg="pg" :fieldsset="skillsFieldsset" :dataset="skills" v-if="skills!=null"></grid>
+			</div>
+			
+			<edit-person-dialog v-if="isEditDialogVisible" :person="currentPerson" :nationalities="nationalities" @onclose="closeEditDialog" @onsave="savePerson"></edit-person-dialog>
+
+			<info-dialog v-if="isInfoDialogVisible" :message="currentInfoMessage" @onclose="onInfoDialogClose"></info-dialog>
+
+			<yesno-dialog v-if="isYesNoDialogVisible" :confirmationfunc="confirmPersonDeletion" :disagreementfunc="denialPersonDeletion" :cancelfunc="denialPersonDeletion" :message="currentQuestionMessage"></yesno-dialog>
+    	</div>
+    </div>
+
+    <span layout:fragment="after-content">
+		<script type="text/x-template" id="grid-row-template">
+        	<tr>
+            	<td v-for="(col, index) in row" v-bind:is="getTemplate(index)" :value="col" :data="rawdata"></td>
+        	</tr>
+		</script>
+		    
+		<script type="text/x-template" id="grid-template">
+			<span>
+				
+
+		   		<table class="table table-hover">
+		   			<thead><tr><th v-for="(field, index) in fieldsset" @click="sort(field)" v-bind:class="getSortClass(field)">{{field.title}}</th></tr></thead>
+		            <tbody v-for="(row, index) in rows">
+		                <grid-row :rawdata="row"></grid-row>
+		            </tbody>
+		   		</table>
+				<span id="paginator"></span>
+				<span id="paginator2"></span>
+
+			</span>
+		</script>
+		
+       <script type="text/x-template" id="default-template">
+            <td>{{value}}</td>
+        </script>
+        
+        <script type="text/x-template" id="edit-person-component-template">
+            <td>
+				<button class="btn btn-block btn-primary" @click="onEditPerson">{{value}}</button>
+			</td>
+        </script>
+
+        <script type="text/x-template" id="delete-person-component-template">
+            <td>
+				<button class="btn btn-block btn-danger" @click="onDeletePerson">{{value}}</button>
+			</td>
+        </script>
+        
+		<script type="text/x-template" id="paginator-template">
+            <table style="padding-top:10px; border-spacing: 10px;">
+                <tr>
+                    <td><button class="btn btn-block btn-success" @click="gotoFirstPage"><i class="fas fa-fast-backward"/></button></td>
+                    <td><button class="btn btn-block btn-success" @click="gotoPreviousPage"><i class="fas fa-backward"/></button></td>
+                    <td class="lead">Page {{currentpage}} of {{pages}}</td>
+                    <td><button class="btn btn-block btn-success" @click="gotoNextPage"><i class="fas fa-forward"/></button></td>
+                    <td><button class="btn btn-block btn-success" @click="gotoLastPage"><i class="fas fa-fast-forward"/></button></td>
+                    <td class="lead">Total Records: <span v-model="totalrecordscount">{{totalrecordscount}}</span></td>
+                </tr>
+            </table>
+        </script>
+                
+          <script type="text/x-template" id="edit-person-dialog-template">
+			<div class="modal show">
+	          <div class="modal-dialog">
+	            <div class="modal-content">
+	              <div class="modal-header">
+	                <button type="button" class="close" data-dismiss="modal" @click="close" aria-label="Close">
+	                  <span aria-hidden="true">&times;</span></button>
+	                <h4 class="modal-title">
+						<span v-if="person.id==null"><i class="fas fa-plus" /> Create</span> 
+						<span v-if="person.id!=null"><i class="fas fa-edit" />  Edit</span> 
+						{{person.name}}
+					</h4>
+	              </div>
+	              <div class="modal-body">
+
+					<div class="form-group">
+						<div class="row">
+							<div><label class="control-label col-lg-2">Name</label></div>
+							<div class="col-lg-8"><input type="text" v-model="person.name" class="form-control" /></div>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<div class="row">
+							<div><label class="control-label col-lg-2">Nationality</label></div>
+							<div class="col-lg-8">
+								<select class="form-control" v-model="person.nationality">
+									<option v-for="nationality in nationalities" v-bind:value="nationality">{{nationality.description}}</option>
+								</select>
+							</div>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<div class="row">
+							<div>
+								<label class="control-label col-lg-2">Gender</label>
+
+                    			<label>
+                      				<input type="radio" name="optionsRadios" id="optionsRadios1" value="M" v-model="person.gender">
+                      				Men
+                    			</label>
+                  			
+                    			<label>
+                      				<input type="radio" name="optionsRadios" id="optionsRadios2" value="W" v-model="person.gender">
+                      				Woman
+                    			</label>
+                  			</div>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<div class="row">
+							<div>
+								<label for="active" class="control-label col-lg-8">Active</label>
+								<input id="active" type="checkbox" v-model="person.active" />
+							</div>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<div class="row">
+							<div>
+								<grid ref="grid" :defaulttemplate="app.defaultTemplate" :pagingenabled="true" :pgid="'paginator'" :pg="app.pg" :fieldsset="app.skillsFieldsset" :dataset="app.skills"></grid>								
+							</div>
+						</div>
+					</div>
+
+
+               
+	              </div>
+	              <div class="modal-footer">
+	              	<button type="button" class="btn btn-primary  pull-left" @click="save">Save</button>
+	                <button type="button" class="btn btn-default" @click="close">Close</button>
+	              </div>
+	            </div>
+	          </div>
+	        </div>
+	</script>
+					
+	<script type="text/x-template" id="info-dialog-template">
+		<div class="modal show">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" @click="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title"><i class="fas fa-info-circle" /> {{message.title}}</h4>
+					</div>
+
+					<div class="modal-body">{{message.text}}</div>
+							
+					<div class="modal-footer" style="text-align:center;"><button type="button" class="btn btn-primary" @click="close">OK</button></div>
+				</div>
+			</div>
+		</div>
+	</script>
+
+	<script type="text/x-template" id="yesno-dialog-template">
+		<div class="modal show">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" @click="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title"><i class="fas fa-question-circle" /> {{message.title}}</h4>
+					</div>
+
+					<div class="modal-body">
+						{{message.text}}
+					</div>
+							
+					<div class="modal-footer" style="text-align:center;">
+						<button type="button" class="btn btn-primary" @click="confirmationfunc()">Yes</button>
+						<button type="button" class="btn btn-warning" @click="disagreementfunc()">No</button>
+						<button type="button" class="btn btn-default pull-right" @click="cancelfunc()">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</script>
+
+    </span>
+    
+    <span layout:fragment="page-script">
+    	<script type="text/javascript" th:src="@{/js/app/multipleGrids.js}" ></script>
+    </span>
+    
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout">
+  <head>
+    <title>Layout</title>
+    
+	<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+      <link rel="stylesheet" th:href="@{/font-awesome/css/fontawesome-all.min.css}">
+      
+	<style type="text/css">
+ 	</style>      
+      
+      
+	<script type="text/javascript" th:src="@{/js/vue/2.5.9/vue.min.js}" ></script>
+	<script type="text/javascript" th:src="@{/js/axios/0.18.0/axios.min.js}" ></script>
+      
+	<script type="text/javascript" th:src="@{/js/lib/pubSub.js}" ></script>
+	<script type="text/javascript" th:src="@{/js/grid/grid.js}" ></script>
+	<script type="text/javascript" th:src="@{/js/lib/dialog.js}" ></script>
+  </head>
+  
+  <body>
+    <div class="container">
+    
+		<nav class="navbar navbar-default">
+		  <div class="container-fluid">
+		    <div class="navbar-header">
+		      <a class="navbar-brand" th:href="@{/}">Home</a>
+		    </div>
+		    <ul class="nav navbar-nav">
+	            <li>
+	              <a th:href="@{/simpleList}"> Simple List</a>
+	            </li>
+	    		<li> <a th:href="@{/withRendererList}">List with Renderer</a></li>
+	    		<li> <a th:href="@{/sortableList}">Sortable List</a></li>
+	    		<li> <a th:href="@{/pagingList}">Paging List</a></li>
+	    		<li><a th:href="@{/simpleManageList}"> Simple Manage List</a></li>
+	    		<li><a th:href="@{/multipleGrids}"> Multiple Grids</a></li>
+		    </ul>
+		  </div>
+		</nav>
+
+      <h1 layout:fragment="header">Layout</h1>
+      <div layout:fragment="content">
+        Fake content
+      </div>
+      
+      <span layout:fragment="after-content"></span>
+      
+      <span layout:fragment="page-script"></span>
+
+<!-- 	<script type="text/javascript" th:src="@{/js/jQuery/jQuery-2.1.4.min.js}" ></script>       -->
+<!--     <script type="text/javascript" th:src="@{/js/bootstrap/bootstrap.min.js}" ></script> -->
+      
+    </div>
+  </body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+  layout:decorator="layout">
+  <head>
+    <title>Persons : List with renderer</title>
+  </head>
+  <body>
+    <h1 layout:fragment="header">Persons : List With Renderer</h1>
+    <div layout:fragment="content" class="container">
+    	<div id="app-content">
+			<grid ref="grid" :defaulttemplate="defaultTemplate" :pagingenabled="enablePaging" :fieldsset="fieldsset" :dataset="dataset" :renderers="renderers" v-if="dataset!=null"></grid>
+    	</div>
+    </div>
+
+    <span layout:fragment="after-content">
+		<script type="text/x-template" id="grid-row-template">
+        	<tr>
+            	<td v-for="(col, index) in row" v-bind:is="getTemplate(index)" :value="col" :data="rawdata"></td>
+        	</tr>
+		</script>
+		    
+		<script type="text/x-template" id="grid-template">
+			<span>
+		   		<table class="table table-bordered">
+		   			<thead><tr><th v-for="(field, index) in fieldsset">{{field.title}}</th></tr></thead>
+		            <tbody v-for="(row, index) in rows">
+		                <grid-row :rowdata="row" :rawdata="row"></grid-row>
+		            </tbody>
+		   		</table>		
+			</span>
+		</script>
+		
+       <script type="text/x-template" id="default-template">
+            <td>{{value}}</td>
+        </script>
+        
+        <script type="text/x-template" id="men-template">
+            <td v-bind:title="value" style="font-size:24px;"><i class="fas fa-male"></i></td>
+        </script>
+        
+        <script type="text/x-template" id="women-template">
+            <td v-bind:title="value" style="font-size:24px;"><i class="fas fa-female"></i></td>
+        </script>
+        
+        <script type="text/x-template" id="active-template">
+            <td v-bind:title="value" style="font-size:24px; color:#0202f1"><i class="fas fa-check"></i></td>
+        </script>
+        
+        <script type="text/x-template" id="inactive-template">
+            <td v-bind:title="value" style="font-size:24px; color:#f10202"><i class="fas fa-times"></i></td>
+        </script>
+        
+        <script type="text/x-template" id="nationality-template">
+            <td v-bind:title="value.description">{{value.code}}</td>
+        </script>        
+    </span>
+    
+    <span layout:fragment="page-script">
+    	<script type="text/javascript" th:src="@{/js/app/withRendererList.js}" ></script>
+    </span>
+    
+</body>
+</html>  
