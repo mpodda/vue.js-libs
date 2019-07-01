@@ -76,6 +76,24 @@ let deletePersonComponent = Vue.component('delete-person', {
     template: '#delete-person-component-template'
 })
 
+let skillsGridComponent = Vue.component('skills-grid', {
+	inject: ['gridBase'],
+    components: {
+    	gridBase : grid
+	},
+	template: '#skills-grid-template'
+});
+
+
+let personsGridComponent = Vue.component('persons-grid', {
+	inject: ['gridBase'],
+    components: {
+    	gridBase : grid
+	},
+	template: '#persons-grid-template'
+});
+
+
 let app = new Vue({
 	el: "#app-content",
 	data () {
@@ -91,7 +109,12 @@ let app = new Vue({
 			nationalities: this.getNationalities(),
 			defaultTemplate: defaultValue,
 			enablePaging:true,
-            pg: new Paginator({
+            personsPaginator: new Paginator({
+                propsData: {
+                    recordsPerPage : 5
+               }
+            }),
+            skillsPaginator: new Paginator({
                 propsData: {
                     recordsPerPage : 5
                }
@@ -111,8 +134,8 @@ let app = new Vue({
 				{property:"delete", title:"", sortable:false}
 			],
 			skillsFieldsset: [
-				{property:"id", title:"Id", sortable:false},
-				{property:"description", title:"Description", sortable:false},
+				{property:"id", title:"Id", sortable:true},
+				{property:"description", title:"Description", sortable:true},
 			],
 			gridcomponents: [
 				{id: "edit",

@@ -20,8 +20,8 @@
 		}
 		
 		.selectedRow {
-			background-color: #fcfcfc;
-		}	
+			background-color: #dfdfdf;
+		}
     </style>
   </head>
   <body>
@@ -55,11 +55,13 @@
 		   		<table class="table table-hover">
 		   			<thead><tr><th v-for="(field, index) in fieldsset" @click="sort(field)" v-bind:class="getSortClass(field)">{{field.title}}</th></tr></thead>
 		            <tbody v-for="(row, index) in rows">
-		                <grid-row :rowdata="row" :rawdata="row"></grid-row>
+		                <!-- <grid-row :rowdata="row" :rawdata="row"></grid-row> -->
+						<grid-row :rawdata="row" @onselectRow="onselectRowListener"></grid-row>
 		            </tbody>
 		   		</table>
-				
-				<span id="paginator"></span>		
+				<paginator v-if="pagingenabled" :me="pg" :currentPage="pg.currentpage" :totalRecordsCount="pg.totalrecordscount" :Pages="pg.pages" :recordsPerPage="pg.recordsPerPage"></paginator>
+				<!-- <span id="paginator"></span> -->
+		
 			</span>
 		</script>
 		

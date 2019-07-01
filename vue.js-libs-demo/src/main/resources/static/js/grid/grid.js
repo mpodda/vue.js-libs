@@ -32,10 +32,14 @@ let gridRow = Vue.component('grid-row', {
         },
         
         selectRow: function(event) {
-            var currentUid = this._uid;
+            console.info("Select");
+            
+            const currentUid = this._uid;
             
             this.$parent.$children.forEach (
                 function (child, index) {
+                    console.info(child._uid);
+                    
                     if (child._uid != currentUid && child.selected) {
                         //Remove selection indication
                         child.selected = false;
@@ -48,17 +52,19 @@ let gridRow = Vue.component('grid-row', {
             
             this.selected = !this.selected;
             
-            event.currentTarget.className += " " + this.$parent.selectedrowclassname;
+            event.currentTarget.className += this.parent.currentclassname + " " + this.parent.selectedrowclassname;
+            
+            console.info(event.currentTarget.className);
             
             this.$emit('onselectRow', this.rawdata);
         },
         
         getRenderer: function(columnIndex) {
-            var field = this.$parent.fieldsset[columnIndex]["property"];
+            var field = this.parent.fieldsset[columnIndex]["property"];
             
             if (field != undefined) {
                 for (var r=0; r<this.$parent.renderers.length; r++) {
-                    var renderer = this.$parent.renderers[r];
+                    var renderer = this.parent.renderers[r];
                     
                     if (field==renderer["id"]) {
                         return renderer;
@@ -67,11 +73,11 @@ let gridRow = Vue.component('grid-row', {
             }
         },
         getComponent: function(columnIndex) {
-            var field = this.$parent.fieldsset[columnIndex]["property"];
+            var field = this.parent.fieldsset[columnIndex]["property"];
             
             if (field != undefined) {
-                for (var c=0; c<this.$parent.gridcomponents.length; c++) {
-                    var component = this.$parent.gridcomponents[c];
+                for (var c=0; c<this.parent.gridcomponents.length; c++) {
+                    var component = this.parent.gridcomponents[c];
                     
                     if (field == component["id"]) {
                         return component;
@@ -79,16 +85,16 @@ let gridRow = Vue.component('grid-row', {
                 }
             }
             
-            return this.$parent.defaulttemplate;
+            return this.parent.defaulttemplate;
         },
         
         getValue: function (f) {
-            var field = this.$parent.fieldsset[f]["property"];
+            var field = this.parent.fieldsset[f]["property"];
             
-            if (this.$parent.isRenderer(field)) {
+            if (this.parent.isRenderer(field)) {
                  return this.getRenderer(f).value(resolveObjectValue(field, this.rawdata));
             } else {
-                if (this.$parent.isComponent(field)) {
+                if (this.parent.isComponent(field)) {
                     this.getComponent(f);
                     return this.getComponent(f).value(resolveObjectValue(field, this.rawdata));
                 } else {
@@ -100,34 +106,42 @@ let gridRow = Vue.component('grid-row', {
         renderRow: function() {
             var row = [];
             
-            for (var f=0; f<this.$parent.fieldsset.length; f++){
-            	row[f] = this.getValue(f);
-            }
-                        
+            const rowComponent = this;
+            
+            this.parent.fieldsset.forEach (
+                function(item, index) {
+                    row[index] = rowComponent.getValue(index);
+                }
+            );
+            
             return row;
         },
         
         getTemplate: function (colIndex) {
-            var field = this.$parent.fieldsset[colIndex]["property"];
+            var field = this.parent.fieldsset[colIndex]["property"];
             
-            if (this.$parent.isComponent(field)){
+            if (this.parent.isComponent(field)){
                 return this.getComponent(colIndex).component(this.rawdata);
             }
             
-            if (this.$parent.isRenderer(field)) {
+            if (this.parent.isRenderer(field)) {
                 return this.getRenderer(colIndex).component(resolveObjectValue(field, this.rawdata));
             }
             
-            return this.$parent.defaulttemplate;
+            return this.parent.defaulttemplate;
         },
         
         onMouseOver : function (event) {
+            console.info("MouseOver");
+            
             if (this.selected) {
                 return;
             }
             
             this.currentclassname = event.currentTarget.className;
-            event.currentTarget.className += " " + this.$parent.rowoverclassname;
+            event.currentTarget.className += " " + this.parent.rowoverclassname;
+            
+            console.info("this=" + this.currentclassname + " current=" + event.currentTarget.className);
         },
         onMouseOut : function (event) {
             if (this.selected) {
@@ -145,22 +159,30 @@ let gridRow = Vue.component('grid-row', {
     computed : {
         row: function() {
             return this.renderRow();
+        },
+        parent: function () {
+            return this.$parent.fieldsset==null?this.$parent.$parent:this.$parent;
         }
     },
     
     template: '#grid-row-template'
 })
 
-let Paginator = Vue.extend({
-     created() {
-         this.currentPage = 1;
-     },
-     
-     props: {
+let paginatorComponent = Vue.component('paginator', {
+    props: {
+        me:{
+            type: Object,
+            required: false
+        },
+         Pages: {
+            type: Number,
+            required: false
+        },        
          recordsPerPage: {
             type: Number,
             required: false
         },
+        
          currentPage: {
             type: Number,
             required: false
@@ -168,9 +190,45 @@ let Paginator = Vue.extend({
         totalRecordsCount: {
             type: Number,
             required: false
+        },
+        someValue: {
+            type: Number,
+            required: false
         }
-     },
-     computed: {
+    },
+    methods: {
+         gotoFirstPage : function() {
+             this.currentPage = 1;
+         },
+         gotoPreviousPage : function() {
+            if (this.currentPage > 1) {
+                 this.currentPage--;
+            }             
+         },
+        
+         gotoNextPage : function() {
+             if (this.currentPage < this.Pages) {
+                 this.currentPage++; 
+            }
+         },
+         gotoLastPage : function() {
+             this.currentPage = this.Pages;
+         },
+         setTotalRecordsCount : function(totalRecordsCount) {
+             this.totalRecordsCount = totalRecordsCount;
+         },
+         setCurrentPage: function(currentPage) {
+             this.currentPage = currentPage;
+         }        
+    },
+    watch: {
+        currentPage: function() {
+            if (this.me) {
+                this.me.currentPage = this.currentPage;
+            }
+        }
+    },
+    computed: {
         pages: function (){
             if (this.totalrecordscount == 0) {
                 return 1;
@@ -197,41 +255,35 @@ let Paginator = Vue.extend({
          
         totalrecordscount: function() {
         	return this.totalRecordsCount;
-        },
+        }
         
+        ,
         currentpage: function() {
         	return this.currentPage;
          }
          
+    },
+    template: '#paginator-template'
+});
+
+
+let Paginator = paginatorComponent.extend({
+     created() {
+         console.info("Paginator created");
+         this.currentPage = 1;
+     },
+     props: {
+        
+     },
+     computed: {
+        
      },
      methods: {
-         gotoFirstPage : function() {
-             this.currentPage = 1;
-         },
-         gotoPreviousPage : function() {
-            if (this.currentPage > 1) {
-                 this.currentPage--;
-            }             
-         },
-         gotoNextPage : function() {
-             if (this.currentPage < this.pages) {
-                 this.currentPage++; 
-            }
-         },
-         gotoLastPage : function() {
-             this.currentPage = this.pages;
-         },
-         setTotalRecordsCount : function(totalRecordsCount) {
-             this.totalRecordsCount = totalRecordsCount;
-         },
-         setCurrentPage: function(currentPage) {
-             this.currentPage = currentPage;
-         }
-     },
-    template: '#paginator-template'
+         
+     }
 })
 
-var grid = Vue.component('grid', {
+let grid = Vue.component('grid', {
     destroyed() {
         console.info("grid destroyed");
     },
@@ -241,13 +293,12 @@ var grid = Vue.component('grid', {
     
     mounted() {
     	console.info("grid mounted");
-    	if (this.pagingenabled) {
-    		//this.pg.$mount('#paginator');
-    		console.info("Mount pg: " + this.pgid);
-    		this.pg.$mount('#' + this.pgid);
-    	}
     },
-    
+    provide () {
+        return {
+        	gridBase: this
+        }
+    },    
     props: {
     	pgid: {
             type: String,
@@ -505,7 +556,7 @@ var grid = Vue.component('grid', {
         	
         	for (let i=0; i<row.length; i++) {
         		for (let j=0; j<filterParts.length; j++) {
-	        		if (row[i] && row[i].toString().indexOf(filterParts[j]) > -1) {
+	        		if (row[i] && row[i].toString().toUpperCase().indexOf(filterParts[j].toUpperCase()) > -1) {
 	        			countMatchesInRow++;
 	        		}
         		}
@@ -536,9 +587,7 @@ var grid = Vue.component('grid', {
             }
             
             if (this.pagingenabled) {
-            	//this.getPaginator().setTotalRecordsCount(this.rawdata.length);
-            	this.getPaginator(); //.setTotalRecordsCount(this.rawdata.length);
-            	console.info("data count: " + this.rawdata.length)
+            	this.getPaginator().setTotalRecordsCount(this.rawdata.length);
             }
             
             if (gridInstance) {
@@ -589,9 +638,11 @@ var grid = Vue.component('grid', {
       return {
       	sortTypes: null,
       	gridrow: null,
-      	currentrow: null          
+      	currentrow: null,
+        templateId: 'grid-template'
       }  
-    },
+    }
+    ,
     template: '#grid-template'
 })
 
@@ -602,10 +653,8 @@ let GridClass = grid.extend({
 	      currentsortfield: {
 	          type: Object,
 	          required: false
-	      }		
+	      }
 	}
-	,
-	template:'#grid-template'
 });
 
 

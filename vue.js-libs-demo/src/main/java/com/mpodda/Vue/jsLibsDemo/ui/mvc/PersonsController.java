@@ -97,7 +97,10 @@ public class PersonsController {
 	
 	@RequestMapping(value = "/person/create", method = RequestMethod.POST)
 	public @ResponseBody Person createPerson() {
-		return new Person();
+		Person person = new Person();
+		person.setActive(Boolean.TRUE);
+		
+		return person;
 	}
 	
 }

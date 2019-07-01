@@ -24,15 +24,33 @@
     </style>
   </head>
   <body>
-    <h1 layout:fragment="header">Persons : Multiple Grids</h1>
+    <h1 layout:fragment="header">Multiple Grids</h1>
     <div layout:fragment="content" class="container">
     	<div id="app-content">
-    		<button type="button" class="btn btn-success  pull-left" @click="createPerson">Create</button>
     		
-			<grid ref="grid"  :defaulttemplate="defaultTemplate" :pagingenabled="enablePaging" :pg="pg" :sorting="sorting" :fieldsset="fieldsset" :dataset="dataset" :gridcomponents="gridcomponents" v-if="dataset!=null"></grid>
 			
-			<div>
-				<grid ref="grid" :defaulttemplate="defaultTemplate" :pagingenabled="true" :pgid="'paginator2'" :pg="pg" :fieldsset="skillsFieldsset" :dataset="skills" v-if="skills!=null"></grid>
+			<div class="panel panel-default">
+				<div class="panel-heading">Persons <button type="button" class="btn btn-default pull-right" @click="createPerson"><i class="fa fa-plus"></i></button></div>
+				
+				<div class="panel-body">
+					
+					<grid ref="grid" :defaulttemplate="defaultTemplate" :pagingenabled="enablePaging" :pg="personsPaginator" :sorting="sorting" :fieldsset="fieldsset" :dataset="dataset" :gridcomponents="gridcomponents" v-if="dataset!=null">
+						<persons-grid></persons-grid>
+					</grid>
+				</div>
+				
+				<div class="panel-footer"></div>
+			</div>
+			
+			
+			<div class="panel panel-default">
+				<div class="panel-heading">Skills</div>
+				
+				<div class="panel-body">
+					<grid ref="grid" :defaulttemplate="defaultTemplate" :pagingenabled="true" :pg="skillsPaginator" :sorting="sorting" :fieldsset="skillsFieldsset" :dataset="skills" v-if="skills!=null">
+						<skills-grid></skills-grid>
+					</grid>
+				</div>
 			</div>
 			
 			<edit-person-dialog v-if="isEditDialogVisible" :person="currentPerson" :nationalities="nationalities" @onclose="closeEditDialog" @onsave="savePerson"></edit-person-dialog>
@@ -52,17 +70,34 @@
 		    
 		<script type="text/x-template" id="grid-template">
 			<span>
-				
-
+				<slot></slot>
+			</span>
+		</script>
+    
+		<script type="text/x-template" id="persons-grid-template">
+			<span>
 		   		<table class="table table-hover">
-		   			<thead><tr><th v-for="(field, index) in fieldsset" @click="sort(field)" v-bind:class="getSortClass(field)">{{field.title}}</th></tr></thead>
-		            <tbody v-for="(row, index) in rows">
+		   			<thead><tr><th v-for="(field, index) in gridBase.fieldsset" @click="gridBase.sort(field)" v-bind:class="gridBase.getSortClass(field)">{{field.title}}</th></tr></thead>
+		            <tbody v-for="(row, index) in gridBase.rows">
 		                <grid-row :rawdata="row"></grid-row>
 		            </tbody>
 		   		</table>
-				<span id="paginator"></span>
-				<span id="paginator2"></span>
+				
+				<paginator v-if="gridBase.pagingenabled" :me="gridBase.pg" :currentPage="gridBase.pg.currentpage" :totalRecordsCount="gridBase.pg.totalrecordscount" :Pages="gridBase.pg.pages" :recordsPerPage="gridBase.pg.recordsPerPage"></paginator>
+			</span>
+		</script>
 
+		<script type="text/x-template" id="skills-grid-template">
+			
+			<span>
+		   		<table class="table table-bordered">
+		   			<thead><tr><th v-for="(field, index) in gridBase.fieldsset" @click="gridBase.sort(field)" v-bind:class="gridBase.getSortClass(field)">{{field.title}}</th></tr></thead>
+		            <tbody v-for="(row, index) in gridBase.rows">
+		                <grid-row :rawdata="row"></grid-row>
+		            </tbody>
+		   		</table>
+				
+				<paginator v-if="gridBase.pagingenabled" :me="gridBase.pg" :currentPage="gridBase.pg.currentpage" :totalRecordsCount="gridBase.pg.totalrecordscount" :Pages="gridBase.pg.pages" :recordsPerPage="gridBase.pg.recordsPerPage"></paginator>
 			</span>
 		</script>
 		
