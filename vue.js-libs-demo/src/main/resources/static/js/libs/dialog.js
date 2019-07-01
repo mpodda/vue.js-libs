@@ -43,4 +43,3 @@ let YesNoDialog = Vue.component('yesno-dialog', {
     },
     template: '#yesno-dialog-template'
 });
-
